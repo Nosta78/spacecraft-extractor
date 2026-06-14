@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Screen Extractor</title>
+
+  <link rel="stylesheet" href="style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+
+<body>
+
+  <div class="background-grid"></div>
+
+  <header class="topbar">
+    <h1>SCREEN EXTRACTOR</h1>
+    <p>Upload + CTRL+V + OCR + base locale</p>
+  </header>
+
+  <main class="container">
+
+    <!-- OCR PANEL -->
+    <section class="panel">
+
+      <h2>📤 Import image</h2>
+
+      <!-- FILE UPLOAD -->
+      <input type="file" id="imageInput" accept="image/*" />
+
+      <!-- PASTE AREA -->
+      <div id="pasteArea">
+        <p>📋 Colle une image ici (CTRL + V)</p>
+      </div>
+
+      <div class="preview-box">
+        <img id="preview" />
+      </div>
+
+      <button id="extractBtn">Extraire le texte</button>
+
+      <div id="status">En attente...</div>
+
+      <textarea id="output"></textarea>
+
+      <input type="text" id="titleInput" placeholder="Titre..." />
+
+      <button id="saveBtn">💾 Sauvegarder</button>
+
+    </section>
+
+    <!-- DATABASE -->
+    <section class="panel">
+
+      <h2>📚 Base de données</h2>
+
+      <input type="text" id="searchInput" placeholder="Rechercher..." />
+
+      <div id="database"></div>
+
+      <button id="exportBtn">📤 Exporter la base</button>
+<button id="importBtn">📥 Importer une base</button>
+<input type="file" id="importFile" accept="application/json" style="display:none;" />
+
+    </section>
+
+  </main>
+
+  <footer>
+    <p>GitHub Pages compatible</p>
+  </footer>
+
+  <script src="app.js"></script>
+
+</body>
+</html>
