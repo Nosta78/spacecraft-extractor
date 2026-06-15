@@ -1,146 +1,234 @@
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: #070A12;
-  color: #D6E4FF;
+  background: radial-gradient(circle at top, #0a1020, #05070f);
+  color: #00ffe1;
+  font-family: monospace;
 }
 
-.background-grid {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  background-image:
-    linear-gradient(rgba(0,255,255,0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,255,255,0.05) 1px, transparent 1px);
-  background-size: 40px 40px;
-  z-index: 0;
-}
-
-.topbar {
-  text-align: center;
-  padding: 25px;
-  border-bottom: 1px solid rgba(0,255,255,0.2);
-}
-
-.topbar h1 {
-  color: #7DF9FF;
-  letter-spacing: 3px;
-}
-
-.container {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  gap: 20px;
-  justify-content: center;
+.app {
   padding: 20px;
-  flex-wrap: wrap;
+  max-width: 1100px;
+  margin: auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.subtitle {
+  opacity: 0.6;
+  font-size: 12px;
 }
 
 .panel {
-  width: 420px;
-  background: rgba(10, 15, 30, 0.9);
-  border: 1px solid rgba(0,255,255,0.2);
-  border-radius: 8px;
+  border: 1px solid rgba(0,255,225,0.2);
   padding: 15px;
+  margin-bottom: 15px;
+  background: rgba(10,15,30,0.4);
+  box-shadow: 0 0 15px rgba(0,255,225,0.05);
 }
 
-h2 {
-  color: #7DF9FF;
-}
-
-input, textarea {
+input, textarea, button {
   width: 100%;
   margin-top: 10px;
-  padding: 8px;
-  background: #050814;
-  color: #7DF9FF;
-  border: 1px solid rgba(0,255,255,0.3);
+  padding: 10px;
+  background: rgba(5,10,20,0.8);
+  border: 1px solid #00ffe1;
+  color: #00ffe1;
+  box-sizing: border-box;
 }
 
 textarea {
-  height: 120px;
+  min-height: 300px;
+  white-space: pre-wrap;
 }
 
 .preview-box {
   margin-top: 10px;
-  height: 180px;
-  border: 1px dashed rgba(0,255,255,0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  text-align: center;
 }
 
-.preview-box img {
-  max-width: 100%;
-  max-height: 100%;
-}
-
-button {
+#preview {
+  max-width: 400px;
+  border: 1px solid #00ffe1;
   margin-top: 10px;
-  width: 100%;
-  padding: 10px;
-  background: #0ff;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
 }
 
-button:hover {
-  background: #7DF9FF;
-}
-
-#status {
+/* LIST */
+#list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
   margin-top: 10px;
-  font-size: 12px;
-  opacity: 0.8;
+
+  /* IMPORTANT pour alignement propre */
+  align-items: stretch;
 }
 
-/* DATABASE CARDS */
+/* CARD */
 .card {
-  background: rgba(0,255,255,0.05);
-  border: 1px solid rgba(0,255,255,0.2);
+  display: flex;
+  flex-direction: column;
+
+  height: 100%; /* 🔥 clé pour égaliser les hauteurs */
+  background: rgba(10,15,30,0.4);
+  border: 1px solid rgba(0,255,225,0.2);
   padding: 10px;
-  margin-top: 10px;
-  border-radius: 6px;
+  box-sizing: border-box;
 }
 
 .card-title {
   font-weight: bold;
-  color: #7DF9FF;
-}
-
-.card-text {
-  font-size: 12px;
-  opacity: 0.9;
-  margin-top: 5px;
-  white-space: pre-wrap;
+  margin-bottom: 5px;
 }
 
 .card-actions {
-  margin-top: 10px;
   display: flex;
   gap: 5px;
+  margin-top: auto;
 }
 
 .card-actions button {
   flex: 1;
-  padding: 5px;
-  font-size: 12px;
 }
 
-#pasteArea {
-  margin-top: 10px;
-  padding: 15px;
-  border: 1px dashed rgba(0,255,255,0.4);
-  text-align: center;
-  color: rgba(125, 249, 255, 0.8);
-  background: rgba(0,255,255,0.03);
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 12px rgba(0,255,225,0.2);
+}
+
+.card-actions button {
+  transition: all 0.15s ease;
   cursor: pointer;
-  transition: 0.2s;
 }
 
-#pasteArea:hover {
-  background: rgba(0,255,255,0.07);
-  border-color: #7DF9FF;
+/* effet hover global */
+.card-actions button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 8px rgba(0,255,225,0.35);
+}
+
+/* COPY (cyan) */
+.card-actions button:nth-child(1):hover {
+  background: rgba(0, 255, 225, 0.15);
+  border-color: #00ffe1;
+}
+
+/* EDIT (bleu légèrement plus chaud) */
+.card-actions button:nth-child(2):hover {
+  background: rgba(80, 180, 255, 0.15);
+  border-color: #50b4ff;
+  box-shadow: 0 0 8px rgba(80, 180, 255, 0.4);
+}
+
+/* DELETE (rouge danger) */
+.card-actions button:nth-child(3):hover {
+  background: rgba(255, 60, 60, 0.15);
+  border-color: #ff3c3c;
+  box-shadow: 0 0 8px rgba(255, 60, 60, 0.4);
+}
+
+/* bottom bar */
+.bottom-bar {
+  position: relative;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(0,0,0,0.85);
+  border-top: 1px solid rgba(0,255,225,0.3);
+}
+
+.bottom-bar button {
+  flex: 1;
+}
+
+#scanBtn {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* hover principal */
+#scanBtn:hover {
+  background: rgba(0, 255, 225, 0.12);
+  box-shadow: 0 0 12px rgba(0, 255, 225, 0.5);
+  transform: translateY(-1px);
+  border-color: #00ffe1;
+}
+
+/* effet "pulse scanner" */
+#scanBtn:hover::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 255, 225, 0.25),
+    transparent 60%
+  );
+  animation: scanPulse 1.2s infinite;
+}
+
+/* animation */
+@keyframes scanPulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+#saveBtn {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* hover principal */
+#saveBtn:hover {
+  background: rgba(0, 255, 225, 0.15);
+  border-color: #00ffe1;
+  box-shadow: 0 0 14px rgba(0, 255, 225, 0.45);
+  transform: translateY(-1px);
+}
+
+/* effet "écriture mémoire" */
+#saveBtn:hover::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -30%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(0, 255, 225, 0.25),
+    transparent
+  );
+  animation: saveSweep 1s infinite;
+}
+
+/* animation */
+@keyframes saveSweep {
+  0% {
+    left: -60%;
+  }
+  100% {
+    left: 120%;
+  }
 }

@@ -1,299 +1,252 @@
 const imageInput = document.getElementById("imageInput");
 const preview = document.getElementById("preview");
-const extractBtn = document.getElementById("extractBtn");
+
+const scanBtn = document.getElementById("scanBtn");
 const output = document.getElementById("output");
-const status = document.getElementById("status");
-const saveBtn = document.getElementById("saveBtn");
-const database = document.getElementById("database");
-const searchInput = document.getElementById("searchInput");
 const titleInput = document.getElementById("titleInput");
+const status = document.getElementById("status");
+
+const saveBtn = document.getElementById("saveBtn");
+
+const searchInput = document.getElementById("searchInput");
+const list = document.getElementById("list");
 
 const exportBtn = document.getElementById("exportBtn");
 const importBtn = document.getElementById("importBtn");
 const importFile = document.getElementById("importFile");
 
 let selectedImage = null;
-let currentText = "";
+let data = JSON.parse(localStorage.getItem("ocr_db") || "[]");
 let editingId = null;
 
-let data = JSON.parse(localStorage.getItem("ocr_db") || "[]");
-
 
 // ==========================
-// IMAGE INPUT + PASTE
+// IMAGE + PASTE
 // ==========================
-imageInput.addEventListener("change", (e) => {
+imageInput.addEventListener("change", e => {
   const file = e.target.files[0];
-  if (!file) return;
-  handleImage(file);
+  if (file) setImage(file);
 });
 
-document.addEventListener("paste", (event) => {
-  const items = event.clipboardData.items;
+document.addEventListener("paste", e => {
+  const items = e.clipboardData?.items;
+  if (!items) return;
 
   for (let item of items) {
     if (item.type.includes("image")) {
-      handleImage(item.getAsFile());
+      setImage(item.getAsFile());
     }
   }
 });
 
-function handleImage(file) {
+function setImage(file) {
   selectedImage = file;
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    preview.src = reader.result;
-  };
-  reader.readAsDataURL(file);
+  const r = new FileReader();
+  r.onload = () => preview.src = r.result;
+  r.readAsDataURL(file);
 }
 
 
 // ==========================
-// OCR DOUBLE PASS
+// OCR SIMPLE & STABLE
 // ==========================
-extractBtn.addEventListener("click", async () => {
-  if (!selectedImage) {
-    alert("Ajoute ou colle une image !");
-    return;
-  }
+scanBtn.onclick = async () => {
+  if (!selectedImage) return alert("NO IMAGE");
 
-  status.innerText = "Analyse en cours...";
+  status.textContent = "SCANNING...";
 
-  const result1 = await Tesseract.recognize(selectedImage, "fra+eng", {
-    tessedit_pageseg_mode: 11,
-    logger: (m) => {
-      if (m.status === "recognizing text") {
-        status.innerText = `OCR ${Math.round(m.progress * 100)}%`;
-      }
-    }
-  });
+  const res = await Tesseract.recognize(selectedImage, "fra+eng");
 
-  const result2 = await Tesseract.recognize(selectedImage, "fra+eng", {
-    tessedit_pageseg_mode: 6
-  });
+  let text = res.data.text || "";
 
-  currentText = cleanFinal(
-    mergeResults(result1.data.text, result2.data.text)
-  );
-
-  output.value = currentText;
-  status.innerText = "OCR terminé ✔";
-});
-
-
-// ==========================
-// MERGE OCR
-// ==========================
-function mergeResults(a, b) {
-  const lines = new Set([
-    ...a.split("\n").map(l => l.trim()).filter(Boolean),
-    ...b.split("\n").map(l => l.trim()).filter(Boolean)
-  ]);
-
-  return Array.from(lines).join("\n");
-}
-
-
-// ==========================
-// CLEAN FINAL (VERSION ROBUSTE ICONES)
-// ==========================
-function cleanFinal(text) {
-  return text
+  // =========================
+  // OCR CLEAN INTELLIGENT
+  // =========================
+  text = text
     .split("\n")
-    .map(line => {
+    .map(l => l.trim())
 
-      let l = line.trim();
+    // suppression icônes début ligne (IMPORTANT)
+    .map(l =>
+      l.replace(/^(\d+)?\s*[»›>@&§•\-–—_|=]+/g, "")
+    )
 
-      // 1. supprime icônes type » - • = etc en début de ligne
-      l = l.replace(/^[\s]*[»•\-–—=+*#~|]/, "");
+    // suppression icônes isolées
+    .map(l =>
+      l.replace(/^[^A-Za-zÀ-ÿ0-9]+/, "")
+    )
 
-      // 2. supprime pattern "2»", "A»", "if,", etc en début de ligne
-      l = l.replace(/^[\s]*[0-9A-Za-z]{1,3}[»•\-–—=+*#~|,]*/, "");
+    // suppression lignes vides
+    .filter(l => l.length > 0)
 
-      // 3. supprime tokens isolés absurdes en début
-      l = l.replace(/^[\s]*(if,?|lt,?|it,?|l,?|e)\s+/i, "");
+    .join("\n");
 
-      return l.trim();
-    })
+  output.value = text;
 
-    // 4. supprime lignes vides
-    .filter(Boolean)
+  // =========================
+  // TITRE (inchangé mais stable)
+  // =========================
+  const lines = text.split("\n");
+  titleInput.value = lines[0] || "NODE";
 
-    // 5. espaces internes
-    .join("\n")
-    .replace(/[ \t]+/g, " ")
-    .replace(/\n{3,}/g, "\n\n")
-
-    .trim();
-}
+  status.textContent = "DONE ✔";
+};
 
 
 // ==========================
-// SAVE / EDIT
+// SAVE
 // ==========================
-saveBtn.addEventListener("click", () => {
-  if (!output.value.trim()) return alert("Rien à sauvegarder");
+saveBtn.onclick = () => {
+  const title = titleInput.value || "NODE";
 
-  const title = titleInput.value || `Scan ${new Date().toLocaleString()}`;
-
-  if (editingId !== null) {
-    const index = data.findIndex(d => d.id == editingId);
-
-    if (index !== -1) {
-      data[index].title = title;
-      data[index].text = output.value;
-    }
-
+  if (editingId) {
+    const i = data.findIndex(d => d.id === editingId);
+    data[i].title = title;
+    data[i].text = output.value;
     editingId = null;
-    status.innerText = "Modification enregistrée ✔";
   } else {
     data.unshift({
       id: Date.now(),
       title,
       text: output.value
     });
-
-    status.innerText = "Entrée sauvegardée ✔";
   }
 
   localStorage.setItem("ocr_db", JSON.stringify(data));
-  titleInput.value = "";
   render();
-});
+
+  // =========================
+  // CLEAN TEXT
+  // =========================
+  output.value = "";
+  titleInput.value = "";
+  editingId = null;
+
+  // =========================
+  // CLEAN IMAGE PREVIEW 🔥 NEW
+  // =========================
+  selectedImage = null;
+  preview.src = "";
+
+  // reset input file (important pour re-upload même fichier)
+  imageInput.value = "";
+
+  // =========================
+  // STATUS FEEDBACK
+  // =========================
+  status.textContent = "SAVED ✔";
+
+  setTimeout(() => {
+    status.textContent = "";
+  }, 1200);
+};
 
 
 // ==========================
-// EDIT
+// RENDER SIMPLE CARDS
 // ==========================
-window.editItem = (id) => {
-  const item = data.find(d => d.id == id);
-  if (!item) return;
+function render(filter = "") {
+  list.innerHTML = "";
+
+  data
+    .filter(d =>
+      d.title.toLowerCase().includes(filter.toLowerCase()) ||
+      d.text.toLowerCase().includes(filter.toLowerCase())
+    )
+    .forEach(d => {
+
+      const div = document.createElement("div");
+      div.className = "card";
+
+      div.innerHTML = `
+        <div class="card-title">${d.title}</div>
+        <div style="white-space: pre-wrap;">${d.text.slice(0, 250)}</div>
+
+        <div class="card-actions">
+          <button onclick="copy(${d.id})">COPY</button>
+          <button onclick="edit(${d.id})">EDIT</button>
+          <button onclick="del(${d.id})">DEL</button>
+        </div>
+      `;
+
+      list.appendChild(div);
+    });
+}
+
+
+// ==========================
+// CRUD COPY / EDIT / DEL
+// ==========================
+window.copy = id => {
+  const d = data.find(x => x.id === id);
+  navigator.clipboard.writeText(d.text);
+};
+
+window.edit = id => {
+  const d = data.find(x => x.id === id);
 
   editingId = id;
+  titleInput.value = d.title;
+  output.value = d.text;
 
-  titleInput.value = item.title;
-  output.value = item.text;
+  // 🔥 scroll automatique vers zone d'édition
+  output.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
 
-  status.innerText = "Mode édition activé ✏️";
+  // option bonus : focus direct
+  setTimeout(() => {
+    output.focus();
+  }, 300);
 };
 
+window.del = id => {
 
-// ==========================
-// DELETE
-// ==========================
-window.deleteItem = (id) => {
-  data = data.filter(d => d.id != id);
+  const d = data.find(x => x.id === id);
+  if (!d) return;
+
+  const confirmDelete = confirm(`Delete this entry ?\n\n"${d.title}"`);
+
+  if (!confirmDelete) return;
+
+  data = data.filter(x => x.id !== id);
   localStorage.setItem("ocr_db", JSON.stringify(data));
-  render(searchInput.value);
-};
 
-
-// ==========================
-// COPY
-// ==========================
-window.copyText = (id) => {
-  const item = data.find(d => d.id == id);
-  navigator.clipboard.writeText(item.text);
-  alert("Copié !");
+  render();
 };
 
 
 // ==========================
 // SEARCH
 // ==========================
-searchInput.addEventListener("input", (e) => {
-  render(e.target.value);
-});
+searchInput.addEventListener("input", e => render(e.target.value));
 
 
 // ==========================
-// RENDER
+// EXPORT / IMPORT
 // ==========================
-function render(filter = "") {
-  database.innerHTML = "";
-
-  const filtered = data.filter(item =>
-    item.title.toLowerCase().includes(filter.toLowerCase()) ||
-    item.text.toLowerCase().includes(filter.toLowerCase())
-  );
-
-  filtered.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "card";
-
-    div.innerHTML = `
-      <div class="card-title">${item.title}</div>
-      <div class="card-text">${item.text.slice(0, 250)}...</div>
-
-      <div class="card-actions">
-        <button onclick="copyText('${item.id}')">Copier</button>
-        <button onclick="editItem('${item.id}')">Modifier</button>
-        <button onclick="deleteItem('${item.id}')">Supprimer</button>
-      </div>
-    `;
-
-    database.appendChild(div);
-  });
-}
-
-
-// ==========================
-// EXPORT
-// ==========================
-exportBtn.addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
-    type: "application/json"
-  });
-
+exportBtn.onclick = () => {
+  const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
-
   const a = document.createElement("a");
   a.href = url;
-  a.download = "ocr_database.json";
+  a.download = "ocr.json";
   a.click();
+};
 
-  URL.revokeObjectURL(url);
-});
+importBtn.onclick = () => importFile.click();
 
-
-// ==========================
-// IMPORT
-// ==========================
-importBtn.addEventListener("click", () => {
-  importFile.click();
-});
-
-importFile.addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
+importFile.onchange = e => {
   const reader = new FileReader();
-
   reader.onload = () => {
-    try {
-      const imported = JSON.parse(reader.result);
-
-      if (!Array.isArray(imported)) {
-        alert("Fichier invalide ❌");
-        return;
-      }
-
-      data = imported;
-      localStorage.setItem("ocr_db", JSON.stringify(data));
-      render();
-
-      alert("Import réussi ✔");
-    } catch (err) {
-      alert("Erreur import ❌");
-    }
+    data = JSON.parse(reader.result);
+    localStorage.setItem("ocr_db", JSON.stringify(data));
+    render();
   };
+  reader.readAsText(e.target.files[0]);
+};
 
-  reader.readAsText(file);
-});
 
-
-// ==========================
 // INIT
-// ==========================
 render();

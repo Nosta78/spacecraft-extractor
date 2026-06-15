@@ -1,76 +1,55 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Screen Extractor</title>
+<meta charset="UTF-8">
+<title>SCANNER D'IMAGE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="style.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <div class="background-grid"></div>
+<div class="app">
 
-  <header class="topbar">
-    <h1>SCREEN EXTRACTOR</h1>
-    <p>Upload + CTRL+V + OCR + base locale</p>
-  </header>
+  <div class="header">
+    <h1>SCANNER D'IMAGE</h1>
+    <div class="subtitle">OCR DATA EXTRACTION SYSTEM</div>
+  </div>
 
-  <main class="container">
+  <div class="panel">
+    <input type="file" id="imageInput" accept="image/*">
+    
+    <div class="preview-box">
+      <img id="preview">
+      <button id="scanBtn">SCAN IMAGE</button>
+      <div id="status"></div>
+    </div>
 
-    <!-- OCR PANEL -->
-    <section class="panel">
+    <input id="titleInput" placeholder="TITLE">
 
-      <h2>📤 Import image</h2>
+    <textarea id="output" placeholder="Extracted data..."></textarea>
 
-      <!-- FILE UPLOAD -->
-      <input type="file" id="imageInput" accept="image/*" />
+  
 
-      <!-- PASTE AREA -->
-      <div id="pasteArea">
-        <p>📋 Colle une image ici (CTRL + V)</p>
-      </div>
+    <button id="saveBtn">SAVE ENTRY</button>
+  </div>
 
-      <div class="preview-box">
-        <img id="preview" />
-      </div>
+  <div class="panel">
+    <input id="searchInput" placeholder="SEARCH DATABASE">
+    <div id="list"></div>
+  </div>
 
-      <button id="extractBtn">Extraire le texte</button>
+</div>
 
-      <div id="status">En attente...</div>
+<!-- bottom actions -->
+<div class="bottom-bar">
+  <button id="exportBtn">EXPORT</button>
+  <button id="importBtn">IMPORT</button>
+  <input type="file" id="importFile" hidden>
+</div>
 
-      <textarea id="output"></textarea>
-
-      <input type="text" id="titleInput" placeholder="Titre..." />
-
-      <button id="saveBtn">💾 Sauvegarder</button>
-
-    </section>
-
-    <!-- DATABASE -->
-    <section class="panel">
-
-      <h2>📚 Base de données</h2>
-
-      <input type="text" id="searchInput" placeholder="Rechercher..." />
-
-      <div id="database"></div>
-
-      <button id="exportBtn">📤 Exporter la base</button>
-<button id="importBtn">📥 Importer une base</button>
-<input type="file" id="importFile" accept="application/json" style="display:none;" />
-
-    </section>
-
-  </main>
-
-  <footer>
-    <p>GitHub Pages compatible</p>
-  </footer>
-
-  <script src="app.js"></script>
-
+<script src="app.js"></script>
 </body>
 </html>
